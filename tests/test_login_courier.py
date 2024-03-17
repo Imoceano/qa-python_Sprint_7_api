@@ -15,14 +15,14 @@ from sources.client.courier_support import (get_data_for_check_response_error as
 @pytest.mark.get_url('login_courier')
 class TestLoginCourier:
 
-    @allure.title('Курьер может авторизоваться')
+    @allure.title('Курьер может авторизоваться/Для авторизации нужно передать все обязательные поля/Успешный запрос возвращает id') # покрывает 3 проверки в задании : Курьер может авторизоваться, Для авторизации нужно передать все обязательные поля, Успешный запрос возвращает id
     def test_login_courier_available_is_success(self, get_url, get_new_data):
         payload = courier_data_is_exist(get_new_data)
         response = get_courier(get_url, payload)
         assert response.status_code == HTTPStatus.OK
         assert 'id' in response.json()
 
-    @allure.title('Для авторизации нужно передать все обязательные поля;')
+    @allure.title(';')
     def test_login_courier_with_required_fields_available_is_success(self, get_url, get_new_data):
         payload = courier_data_is_exist(get_new_data)
         response = get_courier(get_url, payload)
@@ -38,7 +38,7 @@ class TestLoginCourier:
         response = get_courier(get_url, payload)
         assert response.json()['message'] == TestData.ERROR_TEXT_FOR_INCORRECT_LOGIN_OR_PASSWORD
 
-    @allure.title('Проверка ошибки авторизации курьера при отсутствии в запросе обязательного поля')
+    @allure.title('Проверка ошибки авторизации курьера при отсутствии в запросе обязательного поля login')
     def test_login_courier_without_one_field_return_error_login_success(self, get_url, get_new_data):
         current_data = courier_data_is_exist(get_new_data)
         payload = current_data.copy()  
@@ -48,7 +48,7 @@ class TestLoginCourier:
         expected_error_message = TestData.ERROR_TEXT_LOGIN_WITHOUT_PASSWORD
         assert response.json()['message'] == expected_error_message
     
-    @allure.title('Проверка ошибки авторизации курьера при отсутствии в запросе обязательного поля')
+    @allure.title('Проверка ошибки авторизации курьера при отсутствии в запросе обязательного поля password')
     def test_login_courier_without_one_field_return_error_success(self, get_url, get_new_data):
         current_data = courier_data_is_exist(get_new_data)
         payload = dict.fromkeys(['password', ])
@@ -69,9 +69,3 @@ class TestLoginCourier:
         assert response.status_code == HTTPStatus.NOT_FOUND
         assert message == TestData.ERROR_TEXT_FOR_INCORRECT_LOGIN_OR_PASSWORD
 
-    @allure.title('Успешный запрос возвращает id')
-    def test_login_courier_id_in_response_success(self, get_url, get_new_data):
-        payload = courier_data_is_exist(get_new_data)
-        response = get_courier(get_url, payload)
-        assert response.status_code == HTTPStatus.OK
-        assert 'id' in response.json()

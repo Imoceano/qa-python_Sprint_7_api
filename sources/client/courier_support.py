@@ -9,7 +9,7 @@ from sources.client.urls import APICourier
 # метод регистрации нового курьера возвращает список из логина и пароля
 # если регистрация не удалась, возвращает пустой список
 
-
+@allure.title('Сфорировать тело запроса для создания курьера')
 def get_data_for_create_courier():
     # метод генерирует строку, состоящую только из букв нижнего регистра, в качестве параметра передаём длину строки
     def generate_random_string(length):
@@ -27,7 +27,7 @@ def get_data_for_create_courier():
         'firstName': first_name
     }
     return payload
-
+@allure.title('Сфорировать тело запроса для создания курьера и вернуть логин и пароль')
 def register_new_courier_and_return_login_password(get_new_data):
     payload = get_new_data
     courier_create_url = f'{TestData.MAIN_URL}{APICourier.ENDPOINT_COURIER_CREATE}'
@@ -35,7 +35,7 @@ def register_new_courier_and_return_login_password(get_new_data):
     if response.status_code == 201:
         return payload
 
-
+@allure.title('Сформировать тела запроса и вернуть проверить код статуса')
 def get_data_for_check_status_code(condition, get_new_data):
     payload = {}
     if condition == 'valid_data':
@@ -52,7 +52,7 @@ def get_data_for_check_status_code(condition, get_new_data):
         payload['password'] = f"new{get_new_data['password']}"
     return payload
 
-
+@allure.title('Проверка возвращаемой ошибки')
 def get_data_for_check_response_error(condition, current_data):
     payload = {}
     if condition == 'incorrect_login':
@@ -67,7 +67,7 @@ def get_data_for_check_response_error(condition, current_data):
         }
     return payload
 
-
+@allure.title('Получить данные бещ одного обязательного поля')
 def get_data_without_one_required_field(payload, current_data):
     if 'login' in payload:
         payload['login'] = current_data['login']
@@ -75,6 +75,7 @@ def get_data_without_one_required_field(payload, current_data):
         payload['password'] = current_data['password']
     return payload
 
+@allure.title('Удалить курьера')
 def delete_courier(payload):
     url = APICourier()
     if 'firstName' in payload:
@@ -84,11 +85,12 @@ def delete_courier(payload):
         courier_id = response.json()['id']
         requests.delete(url=f'{url.post_api_courier_route()}/{courier_id}')
 
-
+@allure.title('Получить ответ от GET-запроса')
 def get_response_get_courier(get_url, payload):
     response = requests.post(get_url, payload)
     return response
 
+@allure.title('Получить ответ от POST-запроса')
 def get_response_post_courier(get_url, payload):
     response = requests.post(url=get_url, data=payload)
     return response

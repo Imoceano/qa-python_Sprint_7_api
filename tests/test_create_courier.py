@@ -4,23 +4,25 @@ import pytest
 from http import HTTPStatus
 
 from sources.client.data import TestData
-from sources.client.courier_support import (register_new_courier_and_return_login_password as exist_courier_data,
-                                            get_data_for_check_status_code as check_status_code,
-                                            get_data_without_one_required_field,
-                                            get_response_post_courier as post_courier)
+from sources.client.courier_support import register_new_courier_and_return_login_password as exist_courier_data
+from sources.client.courier_support import get_data_without_one_required_field
+from sources.client.courier_support import get_response_post_courier as post_courier
+                                            
+                                            
+                                            
 
 
 @pytest.mark.get_url('create_courier')
 class TestCreateCourier:
 
-    @allure.title('Тест успешного создания курьера')
+    @allure.title('курьера можно создать/ Тест успешного создания курьера при передаче всех обязательных полей') #покрывает 4 проверки задания: Создание курьера, создание курьера при передаче всех обязательных полей, проверка успешного запроса, возврат {'ok': 'true'}
     def test_create_courier_available_success(self, get_url, get_new_data):
         payload = get_new_data
         response = post_courier(get_url, payload)
         assert response.status_code == HTTPStatus.CREATED
         assert response.json() == TestData.RESPONSE_SUCCESS
 
-    @allure.title('Тест невозможности создать 2 одинаковых курьера')
+    @allure.title('Тест невозможности создать 2 одинаковых курьера/ если создать пользователя с логином, который уже есть, возвращается ошибка.') #покрывает 2 проверки задания: Невозоможно создать 2 одинаковых курьера, возврат ошибки при создании если логин существует
     def test_create_courier_as_prev_courier_unavailable_success(self, get_url, get_new_data):
         payload = exist_courier_data(get_new_data)
         response = post_courier(get_url, payload)
@@ -28,27 +30,6 @@ class TestCreateCourier:
         assert response.status_code == HTTPStatus.CONFLICT
         assert message == TestData.ERROR_TEXT_FOR_LOGIN_EXIST_YET
 
-    @allure.title('Проверка возможности создания курьера при передаче всех обязательных полей')
-    def test_create_courier_with_required_fields_available_success(self, get_url, get_new_data):
-        payload = get_new_data
-        response = post_courier(get_url, payload)
-        assert response.status_code == HTTPStatus.CREATED
-        assert response.json() == TestData.RESPONSE_SUCCESS
-
-    @allure.title('Проверка кода ответа при создании курьера')
-    @pytest.mark.parametrize('condition, status_code', (('valid_data', 201), ('only_login', 400), ('exist_data', 409)))
-    def test_create_courier_return_with_required_status_code_success(
-            self, get_url, condition, status_code, get_new_data):
-        payload = check_status_code(condition, get_new_data)
-        response = post_courier(get_url, payload)
-        assert response.status_code == status_code
-
-    @allure.title('Проверка ответа успешного запроса создания курьера')
-    def test_create_courier_return_ok_success(self, get_url, get_new_data):
-        payload = get_new_data
-        response = post_courier(get_url, payload)
-        assert response.status_code == HTTPStatus.CREATED
-        assert response.json() == TestData.RESPONSE_SUCCESS
 
     @allure.title('Проверка ответа при отсутствии в запросе обязательного поля')
     @pytest.mark.parametrize('field', ['login', 'password'])
@@ -60,13 +41,4 @@ class TestCreateCourier:
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert message == TestData.ERROR_TEXT_FOR_CREATE_WITHOUT_REQUIRED_FIELD
 
-    @allure.title('Проверка невозможности создания курьера c существующим логином')
-    def test_create_courier_with_exist_login_unavailable_success(self, get_url, get_new_data):
-        payload = exist_courier_data(get_new_data)
-        password = get_new_data['password']
-        payload['password'] = f"new{get_new_data['password']}"
-        response = post_courier(get_url, payload)
-        payload['password'] = password
-        message = response.json()['message']
-        assert response.status_code == HTTPStatus.CONFLICT
-        assert message == TestData.ERROR_TEXT_FOR_LOGIN_EXIST_YET
+  

@@ -5,6 +5,7 @@ import json
 from sources.client.data import TestData
 from sources.client.urls import APIOrder
 
+@allure.step('Получение бади запроса для заказа')
 def get_body_request_order(order_lst):
     current_data = {
         'firstName': order_lst[0],
@@ -21,7 +22,7 @@ def get_body_request_order(order_lst):
     return payload
 
 
-
+@allure.step('Отменить заказ')
 def cancel_order(payload):
     url = APIOrder()
     response = requests.post(url=url.get_post_api_order_route(), data=payload)
@@ -32,11 +33,12 @@ def cancel_order(payload):
         }
         requests.put(url=f'{TestData.MAIN_URL}{APIOrder.ENDPOINT_ORDER_CANCEL}', data=payload)
 
-
+@allure.step('Получить ответ от POST-запроса')
 def get_response_post_order(get_url, payload):
     response = requests.post(get_url, payload)
     return response
 
+@allure.step('Получить ответ от GET-запроса')
 def get_response_get_order(get_url):
     response = requests.get(get_url)
     return response
