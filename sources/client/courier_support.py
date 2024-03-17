@@ -1,0 +1,96 @@
+import allure
+import requests
+import random
+import string
+
+from sources.client.data import TestData
+from sources.client.urls import APICourier
+
+# метод регистрации нового курьера возвращает список из логина и пароля
+# если регистрация не удалась, возвращает пустой список
+
+@allure.title('Сфорировать тело запроса для создания курьера')
+def get_data_for_create_courier():
+    # метод генерирует строку, состоящую только из букв нижнего регистра, в качестве параметра передаём длину строки
+    def generate_random_string(length):
+        letters = string.ascii_lowercase
+        random_string = ''.join(random.choice(letters) for i in range(length))
+        return random_string
+    # генерируем логин, пароль и имя курьера
+    login = generate_random_string(6)
+    password = generate_random_string(10)
+    first_name = generate_random_string(10)
+    # собираем тело запроса
+    payload = {
+        'login': login,
+        'password': password,
+        'firstName': first_name
+    }
+    return payload
+@allure.title('Сфорировать тело запроса для создания курьера и вернуть логин и пароль')
+def register_new_courier_and_return_login_password(get_new_data):
+    payload = get_new_data
+    courier_create_url = f'{TestData.MAIN_URL}{APICourier.ENDPOINT_COURIER_CREATE}'
+    response = requests.post(url=courier_create_url, data=payload)
+    if response.status_code == 201:
+        return payload
+
+@allure.title('Сформировать тела запроса и вернуть проверить код статуса')
+def get_data_for_check_status_code(condition, get_new_data):
+    payload = {}
+    if condition == 'valid_data':
+        payload = {
+            'login': get_new_data['login'],
+            'password': get_new_data['password']
+        }
+    if condition == 'only_login':
+        payload = {
+            'login': get_new_data['login'],
+        }
+    if condition == 'exist_data':
+        payload = register_new_courier_and_return_login_password(get_new_data)
+        payload['password'] = f"new{get_new_data['password']}"
+    return payload
+
+@allure.title('Проверка возвращаемой ошибки')
+def get_data_for_check_response_error(condition, current_data):
+    payload = {}
+    if condition == 'incorrect_login':
+        payload = {
+            'login': f"new{current_data['login']}",
+            'password': current_data['password']
+        }
+    if condition == 'incorrect_password':
+        payload = {
+            'login': current_data['login'],
+            'password': f"new{current_data['password']}"
+        }
+    return payload
+
+@allure.title('Получить данные бещ одного обязательного поля')
+def get_data_without_one_required_field(payload, current_data):
+    if 'login' in payload:
+        payload['login'] = current_data['login']
+    if 'password' in payload:
+        payload['password'] = current_data['password']
+    return payload
+
+@allure.title('Удалить курьера')
+def delete_courier(payload):
+    url = APICourier()
+    if 'firstName' in payload:
+        payload.pop('firstName')
+    response = requests.post(url=url.get_api_courier_route(), data=payload)
+    if 'id' in response.json():
+        courier_id = response.json()['id']
+        requests.delete(url=f'{url.post_api_courier_route()}/{courier_id}')
+
+@allure.title('Получить ответ от GET-запроса')
+def get_response_get_courier(get_url, payload):
+    response = requests.post(get_url, payload)
+    return response
+
+@allure.title('Получить ответ от POST-запроса')
+def get_response_post_courier(get_url, payload):
+    response = requests.post(url=get_url, data=payload)
+    return response
